@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tajweed Read-Along</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: reading card + question panel on the left, rules and progress on the right; stacks on phones. */
+:root{
+  --bg:#edf1ee; --surface:#ffffff; --ink:#17201c; --muted:#5c6b64; --line:#d6dfda;
+  --accent:#0b6e5a; --accent-soft:#dcefe9; --hl:#ffe066; --good:#2b8a3e; --bad:#c92a2a;
+  --cursor:#e3f1ec;
+  --font-ar:"Amiri Quran","Amiri","Scheherazade New","Noto Naskh Arabic","Traditional Arabic",serif;
+  --font-ui:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --ar-size:2.35rem;
+  --c0:#2b8a3e;--c1:#0c8599;--c2:#5f6f86;--c3:#66a80f;--c4:#087f5b;--c5:#ae3ec9;--c6:#6741d9;--c7:#9c6644;--c8:#7f4f24;
+  --c9:#1971c2;--c10:#b08900;--c11:#e8590c;--c12:#e03131;--c13:#d6336c;--c14:#9b1c1c;--c15:#868e96;--c16:#a1887f;--c17:#adb5bd;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1513; --surface:#172019; --ink:#e5ece8; --muted:#94a59c; --line:#2a3630;
+    --accent:#45c4a2; --accent-soft:#1d3a32; --hl:#7a6300; --good:#69db7c; --bad:#ff8787; --cursor:#1f3029;
+    --c0:#69db7c;--c1:#3bc9db;--c2:#a5b4c8;--c3:#a9e34b;--c4:#38d9a9;--c5:#e599f7;--c6:#9775fa;--c7:#d4a373;--c8:#b08968;
+    --c9:#4dabf7;--c10:#ffd43b;--c11:#ffa94d;--c12:#ffa8a8;--c13:#f783ac;--c14:#fa5252;--c15:#8f9aa3;--c16:#bcaaa4;--c17:#6c757d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1513; --surface:#172019; --ink:#e5ece8; --muted:#94a59c; --line:#2a3630;
+  --accent:#45c4a2; --accent-soft:#1d3a32; --hl:#7a6300; --good:#69db7c; --bad:#ff8787; --cursor:#1f3029;
+  --c0:#69db7c;--c1:#3bc9db;--c2:#a5b4c8;--c3:#a9e34b;--c4:#38d9a9;--c5:#e599f7;--c6:#9775fa;--c7:#d4a373;--c8:#b08968;
+  --c9:#4dabf7;--c10:#ffd43b;--c11:#ffa94d;--c12:#ffa8a8;--c13:#f783ac;--c14:#fa5252;--c15:#8f9aa3;--c16:#bcaaa4;--c17:#6c757d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.5}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:16px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;justify-content:space-between}
+header.top h1{font-size:1.25rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+header.top h1 span{color:var(--muted);font-weight:400;font-size:.95rem;margin-left:8px}
+.pickers{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pickers label{font-size:.8rem;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+select{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-height:38px}
+#surahSel{max-width:240px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media (max-width:880px){.grid{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.reader{padding:18px 20px 16px;display:grid;gap:14px}
+.vhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.vtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.vtitle .ar{font-family:var(--font-ar);font-size:1.5rem;line-height:1.2}
+.vtitle .en{font-weight:600}
+.vtitle .meta{color:var(--muted);font-size:.88rem;font-variant-numeric:tabular-nums}
+.iconrow{display:flex;gap:6px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 14px;min-height:40px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover:not(:disabled){border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface);font-weight:600}
+.btn.small{min-height:34px;padding:5px 10px;font-size:.85rem}
+.kbd{font-size:.72rem;border:1px solid currentColor;border-radius:4px;padding:0 4px;opacity:.7}
+.basmala{font-family:var(--font-ar);text-align:center;font-size:calc(var(--ar-size)*.72);color:var(--muted);line-height:1.8}
+.verse{direction:rtl;font-family:var(--font-ar);font-size:var(--ar-size);line-height:2.3;text-align:right;min-height:3em;word-spacing:.08em;overflow-wrap:break-word}
+.verse .w{border-radius:8px;transition:background-color .15s,color .15s}
+.verse .w.ahead{color:var(--muted);opacity:.6}
+.verse .w.cur{background:var(--cursor);box-shadow:0 0 0 3px var(--cursor)}
+.verse .seg[data-r]{cursor:pointer}
+.verse .hl{background:var(--hl);border-radius:4px;color:var(--ink)}
+.verse .end{color:var(--accent);font-size:.8em;white-space:nowrap}
+.tapinfo{min-height:1.4em;font-size:.85rem;color:var(--muted)}
+.progress{height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .2s}
+.controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between;align-items:center}
+.controls .grp{display:flex;gap:8px;flex-wrap:wrap}
+.qpanel{padding:18px 20px;display:grid;gap:12px;min-height:150px;border-left:4px solid var(--accent)}
+.qpanel.right{border-left-color:var(--good)} .qpanel.wrong{border-left-color:var(--bad)}
+.qpanel h2{margin:0;font-size:1.05rem;text-wrap:balance}
+.qpanel p{margin:0;max-width:65ch}
+.snippet{font-family:var(--font-ar);direction:rtl;font-size:2.2rem;line-height:1.8;background:var(--bg);color:var(--ink);border-radius:8px;padding:0 16px;justify-self:start}
+.snippet .hl2{background:var(--hl);border-radius:4px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:520px){.opts{grid-template-columns:1fr}}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 12px;cursor:pointer;display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;min-height:52px}
+.opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+.opt .n{font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:5px;width:22px;height:22px;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.opt .ar{font-family:var(--font-ar);font-size:1.1rem;color:var(--muted);direction:rtl}
+.opt.correct{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good)}
+.opt.chosen-wrong{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.opt:disabled{cursor:default}
+.verdict{font-weight:700}
+.verdict.right{color:var(--good)} .verdict.wrong{color:var(--bad)}
+.rulebox{display:grid;gap:4px;background:var(--bg);border-radius:10px;padding:12px 14px}
+.rulebox .name{font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rulebox .name .ar{font-family:var(--font-ar);font-weight:400;font-size:1.15rem}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;flex:none}
+.example{font-family:var(--font-ar);font-size:1.1rem}
+.side{display:grid;gap:16px}
+.panel{padding:16px;display:grid;gap:12px}
+.panel h3{margin:0;font-size:.95rem}
+.score{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.score div{background:var(--bg);border-radius:10px;padding:8px 4px}
+.score b{display:block;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.score small{color:var(--muted);font-size:.75rem}
+.fam{display:grid;gap:6px}
+.fam .fhead{display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.fam .fhead button{background:none;border:0;color:var(--accent);cursor:pointer;font-size:.78rem;text-transform:none;letter-spacing:0;padding:2px 4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:4px 10px 4px 8px;font-size:.84rem;cursor:pointer;user-select:none;background:var(--surface)}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip:has(input:checked){background:var(--accent-soft);border-color:var(--accent)}
+.chip:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
+.chip .sw{opacity:.35}
+.chip:has(input:checked) .sw{opacity:1}
+.setrow{display:grid;gap:4px;font-size:.85rem}
+.setrow select{width:100%}
+.check{display:flex;gap:8px;align-items:center;font-size:.85rem;cursor:pointer}
+.stats{display:grid;gap:7px}
+.srow{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:.84rem}
+.srow .bar{grid-column:2/4;height:5px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:-3px}
+.srow .bar i{display:block;height:100%}
+.srow .num{font-variant-numeric:tabular-nums;color:var(--muted)}
+.empty{color:var(--muted);font-size:.85rem;margin:0}
+.srow .sub{grid-column:2/4;font-size:.74rem;color:var(--muted);margin-top:-4px}
+.pill{font-size:.68rem;font-weight:600;color:var(--bad);border:1px solid var(--bad);border-radius:999px;padding:0 6px;margin-left:4px;white-space:nowrap}
+details.guide{padding:0}
+details.guide summary{padding:14px 20px;cursor:pointer;font-weight:600}
+.glist{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;padding:0 20px 20px}
+.glist .rulebox{background:var(--bg)}
+footer{color:var(--muted);font-size:.8rem;max-width:80ch}
+footer a{color:var(--accent)}
+.loading{padding:40px;text-align:center;color:var(--muted)}
+.linkbtn{background:none;border:0;color:var(--accent);cursor:pointer;padding:0;font-size:.82rem;text-decoration:underline}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>Tajweed Read-Along <span>Read word by word. Name each rule as you reach it.</span></h1>
+    <div class="pickers">
+      <label for="surahSel">Surah<select id="surahSel" disabled><option>Loading…</option></select></label>
+      <label for="ayahSel">Ayah<select id="ayahSel" disabled></select></label>
+    </div>
+  </header>
+
+  <div class="grid">
+    <main style="display:grid;gap:16px;min-width:0">
+      <section class="card reader" aria-label="Verse">
+        <div class="vhead">
+          <div class="vtitle"><span class="ar" id="sAr"></span><span class="en" id="sEn"></span><span class="meta" id="vMeta"></span></div>
+          <div class="iconrow">
+            <button class="btn small" id="prevAyah" title="Previous ayah">‹ Ayah</button>
+            <button class="btn small" id="restart" title="Start this ayah again">Restart</button>
+            <button class="btn small" id="nextAyah" title="Next ayah">Ayah ›</button>
+            <button class="btn small" id="fontDown" aria-label="Smaller Arabic text">A−</button>
+            <button class="btn small" id="fontUp" aria-label="Larger Arabic text">A+</button>
+          </div>
+        </div>
+        <div class="basmala" id="basmala" hidden>بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div>
+        <div class="verse" id="verse" lang="ar"><div class="loading">Loading the Quran text…</div></div>
+        <div class="tapinfo" id="tapinfo" aria-live="polite"></div>
+        <div class="progress" aria-hidden="true"><i id="prog"></i></div>
+        <div class="controls">
+          <div class="grp">
+            <button class="btn" id="back"><span aria-hidden="true">→</span> Back</button>
+          </div>
+          <div class="grp">
+            <button class="btn" id="jump" title="Skip ahead to the next rule">Next rule <span class="kbd">J</span></button>
+            <button class="btn primary" id="next">Next word <span class="kbd">Space</span></button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card qpanel" id="qpanel" aria-live="polite"></section>
+
+      <details class="card guide" id="guide">
+        <summary>Rule guide: all 18 rules with colours</summary>
+        <div class="glist" id="glist"></div>
+      </details>
+    </main>
+
+    <aside class="side">
+      <section class="card panel" aria-label="This session">
+        <h3>This session</h3>
+        <div class="score">
+          <div><b id="scCorrect">0</b><small>correct</small></div>
+          <div><b id="scTotal">0</b><small>answered</small></div>
+          <div><b id="scStreak">0</b><small>streak</small></div>
+        </div>
+      </section>
+
+      <section class="card panel" aria-label="Rules to practise">
+        <h3>Quiz me on</h3>
+        <div id="families" class="fam" style="gap:14px"></div>
+        <div class="setrow">
+          <label for="paceSel">Reading pace</label>
+          <select id="paceSel">
+            <option value="words">Word by word (tap Next for each word)</option>
+            <option value="rules">Jump straight to each rule</option>
+          </select>
+        </div>
+        <div class="setrow">
+          <label for="focusSel">Which rules to ask most</label>
+          <select id="focusSel">
+            <option value="equal">All ticked rules equally</option>
+            <option value="weak">Focus on my weakest rules</option>
+          </select>
+          <small id="focusNote" style="color:var(--muted)"></small>
+        </div>
+        <div class="setrow" id="freqRow">
+          <label for="freqSel">How often to ask</label>
+          <select id="freqSel">
+            <option value="1">Every rule I've ticked</option>
+            <option value="0.5">About half of them</option>
+            <option value="0.25">About a quarter</option>
+          </select>
+        </div>
+        <label class="check" for="colourAll"><input type="checkbox" id="colourAll"> Colour the rules I'm not quizzed on too</label>
+      </section>
+
+      <section class="card panel" aria-label="Accuracy by rule">
+        <div style="display:flex;justify-content:space-between;align-items:center"><h3>Accuracy by rule</h3><span id="resetWrap"><button class="linkbtn" id="resetStats">Reset</button></span></div>
+        <div class="stats" id="stats"></div>
+      </section>
+    </aside>
+  </div>
+
+  <footer>
+    Rule positions come from the open <a href="https://github.com/cpfair/quran-tajweed">quran-tajweed</a> dataset (CC BY 4.0), applied to the <a href="https://tanzil.net">Tanzil.net</a> Uthmani text, riwāyah Ḥafṣ ʿan ʿĀṣim. Iẓhār, tafkhīm/tarqīq and the rules of rāʾ are not marked, and ordinary madd letters with no extra length are left uncoloured. Check anything doubtful with your teacher.
+  </footer>
+</div>
+
+<script>
+"use strict";
+const RULE_INFO = {
+  ghunnah:{n:"Ghunnah",ar:"غُنَّة",fam:"noon",ex:"إِنَّ · ثُمَّ",d:"A noon or meem carrying a shaddah (نّ / مّ). Hold the nasal sound from the nose for 2 counts."},
+  idghaam_ghunnah:{n:"Idghām with ghunnah",ar:"إِدْغَام بِغُنَّة",fam:"noon",ex:"مَن يَقُولُ",d:"Noon sākinah or tanween at the end of a word, followed by one of ي ن م و (yanmū). The noon merges into the next letter with ghunnah for 2 counts."},
+  idghaam_no_ghunnah:{n:"Idghām without ghunnah",ar:"إِدْغَام بِلَا غُنَّة",fam:"noon",ex:"يَكُن لَّهُۥ",d:"Noon sākinah or tanween followed by ل or ر. The noon merges completely into the next letter, with no nasal sound."},
+  ikhfa:{n:"Ikhfāʾ",ar:"إِخْفَاء",fam:"noon",ex:"مِن شَرِّ",d:"Noon sākinah or tanween followed by one of the 15 ikhfāʾ letters: ت ث ج د ذ ز س ش ص ض ط ظ ف ق ك. The noon is concealed, between clear and merged, with ghunnah for 2 counts."},
+  iqlab:{n:"Iqlāb",ar:"إِقْلَاب",fam:"noon",ex:"مِنۢ بَعْدِ",d:"Noon sākinah or tanween followed by ب. The noon turns into a concealed meem with ghunnah for 2 counts. The small meem (ۢ) marks it."},
+  ikhfa_shafawi:{n:"Ikhfāʾ shafawī",ar:"إِخْفَاء شَفَوِي",fam:"meem",ex:"تَرْمِيهِم بِحِجَارَةٍ",d:"Meem sākinah followed by ب. The meem is concealed at the lips with ghunnah for 2 counts."},
+  idghaam_shafawi:{n:"Idghām shafawī",ar:"إِدْغَام شَفَوِي",fam:"meem",ex:"لَهُم مَّا",d:"Meem sākinah followed by another meem. The first merges into the second with ghunnah for 2 counts."},
+  idghaam_mutajanisayn:{n:"Idghām mutajānisayn",ar:"إِدْغَام مُتَجَانِسَيْن",fam:"merge",ex:"قَد تَّبَيَّنَ",d:"Two letters from the same point of articulation with different qualities, the first one sākin: د into ت, ت into د or ط, ذ into ظ, ث into ذ, ب into م (as in ٱرْكَب مَّعَنَا). The first letter merges into the second."},
+  idghaam_mutaqaribayn:{n:"Idghām mutaqāribayn",ar:"إِدْغَام مُتَقَارِبَيْن",fam:"merge",ex:"قُل رَّبِّ",d:"Two letters with close points of articulation, the first one sākin: ل into ر (قُل رَّبِّ, بَل رَّفَعَهُ) and ق into ك (نَخْلُقكُّم). The first letter merges into the second."},
+  qalqalah:{n:"Qalqalah",ar:"قَلْقَلَة",fam:"letters",ex:"أَحَدٌ · يَلِدْ",d:"One of ق ط ب ج د (quṭbu jad) with a sukoon, or one you stop on. Release it with a slight bounce. It is strongest when you stop at the end of an ayah."},
+  madd_2:{n:"Madd ṭabīʿī (2 counts)",ar:"مَدّ طَبِيعِي",fam:"madd",ex:"ٱلرَّحْمَٰنِ · لَهُۥ",d:"Natural madd: stretch exactly 2 counts. Here it marks the small (dagger) alif ٰ and the small wāw/yāʾ after the pronoun hāʾ (madd ṣilah ṣughrā)."},
+  madd_246:{n:"Madd ʿāriḍ / līn (2, 4 or 6)",ar:"مَدّ عَارِض لِلسُّكُون",fam:"madd",ex:"ٱلرَّحِيمِ · ٱلْبَيْتِ",d:"A madd letter, or a līn letter (و or ي sākinah after a fatḥah), followed by a letter that becomes sākin only because you stop on it, usually at the end of an ayah. When stopping: 2, 4 or 6 counts."},
+  madd_muttasil:{n:"Madd muttaṣil (4–5)",ar:"مَدّ وَاجِب مُتَّصِل",fam:"madd",ex:"جَآءَ · ٱلسَّمَآءِ",d:"A madd letter followed by a hamzah in the same word. Obligatory: 4 or 5 counts (6 if you stop on the hamzah)."},
+  madd_munfasil:{n:"Madd munfaṣil (4–5)",ar:"مَدّ جَائِز مُنْفَصِل",fam:"madd",ex:"إِنَّآ أَعْطَيْنَٰكَ",d:"A madd letter at the end of one word and a hamzah at the start of the next. 4 or 5 counts in Ḥafṣ by way of ash-Shāṭibiyyah. Also covers madd ṣilah kubrā (لَهُۥٓ أَخْلَدَهُۥ)."},
+  madd_6:{n:"Madd lāzim (6)",ar:"مَدّ لَازِم",fam:"madd",ex:"ٱلضَّآلِّينَ · الٓمٓ",d:"A madd letter followed by a permanent sukoon or shaddah, inside a word or in the opening letters of a surah. Always 6 counts."},
+  hamzat_wasl:{n:"Hamzat al-waṣl",ar:"هَمْزَة ٱلْوَصْل",fam:"letters",ex:"ٱهْدِنَا",d:"The connecting hamzah (ٱ). Pronounced only when you start reading from it; silent when you join it to the word before."},
+  lam_shamsiyyah:{n:"Lām shamsiyyah",ar:"ٱللَّام ٱلشَّمْسِيَّة",fam:"letters",ex:"ٱلرَّحِيمِ · ٱلشَّمْسُ",d:"The lām of ال before a sun letter, which carries a shaddah. The lām is silent and the sun letter is read doubled."},
+  silent:{n:"Silent letter",ar:"حَرْف لَا يُنْطَق",fam:"letters",ex:"قَالُوا۟ · أُو۟لَٰٓئِكَ",d:"A letter that is written but not pronounced, usually marked with a small circle (۟), such as the alif after wāw al-jamāʿah."}
+};
+const FAMILIES = [
+  ["noon","Noon sākinah & tanween"],["meem","Meem sākinah"],["madd","Madd"],["letters","Letters"],["merge","Other idghām"]
+];
+const CONFUSE = {
+  ghunnah:["idghaam_ghunnah","ikhfa","idghaam_shafawi","iqlab"],
+  idghaam_ghunnah:["idghaam_no_ghunnah","ikhfa","iqlab","ghunnah"],
+  idghaam_no_ghunnah:["idghaam_ghunnah","idghaam_mutaqaribayn","ikhfa","lam_shamsiyyah"],
+  ikhfa:["idghaam_ghunnah","iqlab","ikhfa_shafawi","idghaam_no_ghunnah"],
+  iqlab:["ikhfa","ikhfa_shafawi","idghaam_ghunnah","idghaam_shafawi"],
+  ikhfa_shafawi:["iqlab","idghaam_shafawi","ikhfa","ghunnah"],
+  idghaam_shafawi:["ikhfa_shafawi","ghunnah","idghaam_ghunnah","iqlab"],
+  idghaam_mutajanisayn:["idghaam_mutaqaribayn","idghaam_no_ghunnah","qalqalah","idghaam_shafawi"],
+  idghaam_mutaqaribayn:["idghaam_mutajanisayn","idghaam_no_ghunnah","lam_shamsiyyah","qalqalah"],
+  qalqalah:["idghaam_mutajanisayn","silent","ghunnah","madd_246"],
+  madd_2:["madd_246","madd_munfasil","madd_muttasil","silent"],
+  madd_246:["madd_2","madd_6","madd_muttasil","madd_munfasil"],
+  madd_muttasil:["madd_munfasil","madd_6","madd_246","madd_2"],
+  madd_munfasil:["madd_muttasil","madd_2","madd_246","madd_6"],
+  madd_6:["madd_muttasil","madd_246","madd_munfasil","madd_2"],
+  hamzat_wasl:["silent","lam_shamsiyyah","madd_2","qalqalah"],
+  lam_shamsiyyah:["hamzat_wasl","silent","idghaam_no_ghunnah","idghaam_mutaqaribayn"],
+  silent:["hamzat_wasl","madd_2","lam_shamsiyyah","madd_246"]
+};
+const DEFAULT_OFF = ["hamzat_wasl","lam_shamsiyyah","silent"];
+const AR_DIGITS = n => String(n).replace(/\d/g, d => "٠١٢٣٤٥٦٧٨٩"[d]);
+const isMark = ch => /\p{M}/u.test(ch);
+const PAUSE_ONLY = /^[ۖ-۞۩]+$/;
+const $ = id => document.getElementById(id);
+
+// ---------- storage (best effort) ----------
+const KEY = "tajweed-readalong-v1";
+function loadStore(){ try{ return JSON.parse(localStorage.getItem(KEY)) || {}; }catch(e){ return {}; } }
+function saveStore(){ try{ localStorage.setItem(KEY, JSON.stringify(store)); }catch(e){} }
+let store = loadStore();
+store.stats = store.stats || {};
+store.settings = Object.assign({pace:"words",freq:"1",focus:"equal",colourAll:true,size:2.35,off:DEFAULT_OFF}, store.settings || {});
+store.recent = store.recent || {};
+const RECENT_N = 20, MIN_TRIES = 5;
+// Accuracy over the last 20 answers for a rule, smoothed so a single answer can't swing it to 0% or 100%.
+function recentAcc(rule){ const h = store.recent[rule] || []; return {n:h.length, acc:(h.reduce((x, y) => x + y, 0) + 1) / (h.length + 2)}; }
+// Chance a ticked rule is asked. Focus mode: rules with under 5 tries are always asked; then
+// 70% recent accuracy or lower -> always, 80% -> half the time, 90% -> a quarter, never below 10%.
+function askProb(rule){
+  if (store.settings.focus !== "weak") return parseFloat(store.settings.freq);
+  const {n, acc} = recentAcc(rule);
+  if (n < MIN_TRIES) return 1;
+  return Math.min(1, Math.max(0.1, (1 - acc) * 2.5));
+}
+
+// ---------- data + state ----------
+let D = null, RULES = [], surahStart = [];
+const S = { gi:0, tokens:[], stops:[], anns:[], cursor:0, phase:"reading", q:null, opts:[], chosen:null,
+            session:{correct:0,total:0,streak:0}, verseScore:{c:0,t:0}, tapped:null };
+const enabled = () => new Set(RULES.filter(r => !store.settings.off.includes(r)));
+
+function surahOf(gi){ let s = 0; while (s + 1 < surahStart.length && surahStart[s + 1] <= gi) s++; return s; }
+
+function tokenize(text){
+  const toks = []; const re = /\S+/g; let m;
+  while ((m = re.exec(text))) toks.push({s:m.index, e:m.index + m[0].length, pause:PAUSE_ONLY.test(m[0])});
+  const stops = [];
+  toks.forEach((t, i) => { if (!t.pause) { t.stop = stops.length; stops.push(i); } else { t.stop = Math.max(0, stops.length - 1); } });
+  return {toks, stops};
+}
+
+function loadVerse(gi){
+  S.gi = gi;
+  const [text, A] = D.verses[gi];
+  const {toks, stops} = tokenize(text);
+  S.text = text; S.tokens = toks; S.stops = stops;
+  const en = enabled(), freq = parseFloat(store.settings.freq);
+  S.anns = A.map(([r, s, e]) => {
+    const rule = RULES[r];
+    let ss = s; while (ss > 0 && isMark(text[ss])) ss--;
+    let ee = e; while (ee < text.length && isMark(text[ee])) ee++;
+    const tokIdx = toks.findIndex(t => s >= t.s && s < t.e);
+    const word = tokIdx >= 0 ? toks[tokIdx].stop : 0;
+    return {r:rule, ri:r, s:ss, e:ee, word, on:en.has(rule), ask:en.has(rule) && Math.random() < askProb(rule), status:"hidden"};
+  });
+  S.verseScore = {c:0,t:0}; S.q = null; S.chosen = null; S.tapped = null;
+  store.pos = gi; saveStore();
+  arrive(0);
+  syncPickers();
+}
+
+function revealWord(w){
+  S.anns.forEach(a => {
+    if (a.word === w && a.status === "hidden" && !a.ask && (a.on || store.settings.colourAll)) a.status = "shown";
+  });
+}
+function pendingIn(w){ return S.anns.filter(a => a.word === w && a.ask && a.status === "hidden"); }
+
+function arrive(w){
+  S.cursor = w;
+  revealWord(w);
+  askNext();
+}
+function askNext(){
+  const p = pendingIn(S.cursor).sort((a, b) => a.s - b.s);
+  if (p.length){
+    S.q = p[0]; S.q.status = "active"; S.chosen = null; S.phase = "question";
+    S.opts = buildOptions(S.q.r);
+  } else {
+    S.q = null;
+    S.phase = (S.cursor >= S.stops.length - 1) ? "done" : "reading";
+  }
+  render();
+}
+function buildOptions(correct){
+  const pool = CONFUSE[correct].slice().sort(() => Math.random() - .5).slice(0, 3);
+  return [correct, ...pool].sort(() => Math.random() - .5);
+}
+function answer(rule){
+  if (S.phase !== "question") return;
+  const q = S.q, ok = rule === q.r;
+  q.status = ok ? "right" : "wrong"; S.chosen = rule; S.phase = "feedback";
+  const st = store.stats[q.r] || [0, 0]; st[1]++; if (ok) st[0]++; store.stats[q.r] = st;
+  const h = store.recent[q.r] || []; h.push(ok ? 1 : 0); while (h.length > RECENT_N) h.shift(); store.recent[q.r] = h; saveStore();
+  S.session.total++; S.verseScore.t++;
+  if (ok){ S.session.correct++; S.session.streak++; S.verseScore.c++; } else S.session.streak = 0;
+  render();
+}
+function showAnswer(){ answer("__reveal__"); }
+function cont(){ if (S.phase === "feedback") askNext(); }
+
+function next(){
+  if (S.phase === "question") return;
+  if (S.phase === "feedback") return cont();
+  if (S.phase === "done") return gotoVerse(S.gi + 1);
+  if (store.settings.pace === "rules") return jump();
+  if (S.cursor < S.stops.length - 1) arrive(S.cursor + 1);
+}
+function jump(){
+  if (S.phase === "question") return;
+  if (S.phase === "feedback") return cont();
+  if (S.phase === "done") return gotoVerse(S.gi + 1);
+  let w = S.cursor + 1;
+  while (w < S.stops.length - 1 && !pendingIn(w).length){ revealWord(w); w++; }
+  arrive(Math.min(w, S.stops.length - 1));
+}
+function back(){
+  if (S.phase === "question" || S.cursor === 0) return;
+  S.cursor--; S.phase = "reading"; S.q = null; render();
+}
+function gotoVerse(gi){
+  if (gi < 0 || gi >= D.verses.length) return;
+  loadVerse(gi);
+  if (window.innerWidth < 880) $("verse").scrollIntoView({block:"nearest", behavior:"smooth"});
+}
+
+// ---------- rendering ----------
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function charClasses(){
+  const n = S.text.length, cls = new Array(n).fill(null);
+  for (const a of S.anns){
+    if (a.status === "shown" || a.status === "right" || a.status === "wrong") for (let i = a.s; i < a.e; i++) cls[i] = "r" + a.ri;
+  }
+  if (S.q && S.q.status === "active") for (let i = S.q.s; i < S.q.e; i++) cls[i] = "hl";
+  return cls;
+}
+function renderVerse(){
+  const cls = charClasses(); let html = "";
+  S.tokens.forEach((t, i) => {
+    const state = t.stop < S.cursor ? "read" : t.stop === S.cursor ? "cur" : "ahead";
+    let inner = "", i0 = t.s;
+    for (let i1 = t.s + 1; i1 <= t.e; i1++){
+      if (i1 === t.e || cls[i1] !== cls[i0]){
+        const seg = esc(S.text.slice(i0, i1)), c = cls[i0];
+        if (!c) inner += seg;
+        else if (c === "hl") inner += `<span class="seg hl">${seg}</span>`;
+        else { const ri = +c.slice(1); inner += `<span class="seg" data-r="${ri}" style="color:var(--c${ri})" title="${esc(RULE_INFO[RULES[ri]].n)}">${seg}</span>`; }
+        i0 = i1;
+      }
+    }
+    html += `<span class="w ${state}">${inner}</span> `;
+  });
+  const ayah = S.gi - surahStart[surahOf(S.gi)] + 1;
+  html += `<span class="end">﴿${AR_DIGITS(ayah)}﴾</span>`;
+  $("verse").innerHTML = html;
+}
+function ruleBox(rule, withExample = true){
+  const I = RULE_INFO[rule], ri = RULES.indexOf(rule);
+  return `<div class="rulebox"><div class="name"><span class="sw" style="background:var(--c${ri})"></span>${esc(I.n)} <span class="ar" lang="ar">${I.ar}</span></div>
+    <p>${esc(I.d)}</p>${withExample ? `<div>Example: <span class="example" lang="ar" dir="rtl">${I.ex}</span></div>` : ""}</div>`;
+}
+function renderPanel(){
+  const P = $("qpanel"); P.className = "card qpanel";
+  if (S.phase === "question" || S.phase === "feedback"){
+    const q = S.q, fb = S.phase === "feedback";
+    if (fb) P.classList.add(q.status === "right" ? "right" : "wrong");
+    const toks = S.tokens.filter(t => t.e > q.s && t.s < q.e && !t.pause);
+    const ws = toks.length ? toks[0].s : q.s, we = toks.length ? toks[toks.length - 1].e : q.e;
+    const snip = esc(S.text.slice(ws, q.s)) + `<span class="hl2">${esc(S.text.slice(q.s, q.e))}</span>` + esc(S.text.slice(q.e, we));
+    let h = fb
+      ? (q.status === "right"
+          ? `<div class="verdict right">Correct.</div>`
+          : (S.chosen === "__reveal__" ? `<div class="verdict wrong">Here's the answer.</div>` : `<div class="verdict wrong">Not this time. You chose ${esc(RULE_INFO[S.chosen].n)}.</div>`))
+      : `<h2>Which rule applies to the highlighted letters?</h2>`;
+    h += `<div class="snippet" lang="ar">${snip}</div>`;
+    h += `<div class="opts">` + S.opts.map((r, i) => {
+      let c = "opt"; if (fb && r === q.r) c += " correct"; if (fb && r === S.chosen && r !== q.r) c += " chosen-wrong";
+      return `<button class="${c}" data-opt="${r}" ${fb ? "disabled" : ""}><span class="n">${i + 1}</span><span>${esc(RULE_INFO[r].n)}</span><span class="ar" lang="ar">${RULE_INFO[r].ar}</span></button>`;
+    }).join("") + `</div>`;
+    if (fb){
+      h += ruleBox(q.r);
+      h += `<div class="controls"><span></span><button class="btn primary" id="contBtn">Continue <span class="kbd">Enter</span></button></div>`;
+    } else {
+      h += `<div><button class="linkbtn" id="revealBtn">Show me the answer</button> <span style="color:var(--muted);font-size:.82rem">(counts as a miss)</span></div>`;
+    }
+    P.innerHTML = h;
+  } else if (S.phase === "done"){
+    const {c, t} = S.verseScore;
+    const ayah = S.gi - surahStart[surahOf(S.gi)] + 1;
+    const last = S.gi >= D.verses.length - 1;
+    P.innerHTML = `<h2>Ayah ${ayah} finished</h2>
+      <p>${t ? `You named ${c} of ${t} rule${t === 1 ? "" : "s"} correctly in this ayah.` : "No rules from your list came up in this ayah."} Tap any coloured letter above to see its rule name.</p>
+      <div class="controls"><span></span>${last ? "" : `<button class="btn primary" id="nextVerseBtn">Next ayah <span class="kbd">Enter</span></button>`}</div>`;
+  } else {
+    const left = S.anns.filter(a => a.ask && a.status === "hidden").length;
+    P.innerHTML = `<h2>Keep reading</h2>
+      <p>${store.settings.pace === "rules" ? "Tap <b>Next rule</b> to jump to the next one." : "Tap <b>Next word</b> (or press Space) to move on. I'll stop you at each rule."}
+      ${left ? `${left} question${left === 1 ? "" : "s"} left in this ayah.` : "No more questions in this ayah."}</p>`;
+  }
+}
+function renderControls(){
+  const q = S.phase === "question";
+  $("back").disabled = q || S.cursor === 0;
+  $("next").disabled = q;
+  $("jump").disabled = q;
+  $("next").innerHTML = S.phase === "done" ? `Next ayah <span class="kbd">Space</span>` : S.phase === "feedback" ? `Continue <span class="kbd">Space</span>` : (store.settings.pace === "rules" ? `Next rule <span class="kbd">Space</span>` : `Next word <span class="kbd">Space</span>`);
+  $("jump").hidden = store.settings.pace === "rules";
+  $("prog").style.width = (S.stops.length ? ((S.cursor + 1) / S.stops.length) * 100 : 0) + "%";
+  const s = surahOf(S.gi), sd = D.surahs[s], ayah = S.gi - surahStart[s] + 1;
+  $("sAr").textContent = sd[1]; $("sEn").textContent = `${sd[0]}. ${sd[2]}`;
+  $("vMeta").textContent = `Ayah ${ayah} of ${sd[4]} · word ${Math.min(S.cursor + 1, S.stops.length)} of ${S.stops.length}`;
+  $("basmala").hidden = !(ayah === 1 && sd[0] !== 1 && sd[0] !== 9);
+  $("prevAyah").disabled = S.gi === 0; $("nextAyah").disabled = S.gi >= D.verses.length - 1;
+  $("tapinfo").textContent = S.tapped != null ? `Tapped: ${RULE_INFO[RULES[S.tapped]].n} (${RULE_INFO[RULES[S.tapped]].ar})` : "";
+}
+function renderScore(){
+  $("scCorrect").textContent = S.session.correct; $("scTotal").textContent = S.session.total; $("scStreak").textContent = S.session.streak;
+  const focus = store.settings.focus === "weak", en = enabled();
+  const rows = RULES.filter(r => store.stats[r])
+    .map(r => ({r, ...recentAcc(r)}))
+    .sort((a, b) => a.acc - b.acc)
+    .map(({r, n, acc}) => {
+      const [c, t] = store.stats[r], pct = Math.round(c / t * 100), ri = RULES.indexOf(r);
+      const recentPct = Math.round((store.recent[r] || []).reduce((x, y) => x + y, 0) / Math.max(1, n) * 100);
+      const weak = n >= MIN_TRIES && acc <= 0.7;
+      const note = n ? [`last ${n}: ${recentPct}%`] : [];
+      if (focus && en.has(r)) note.push(`asked ${Math.round(askProb(r) * 100)}% of the time`);
+      return `<div class="srow"><span class="sw" style="background:var(--c${ri})"></span><span>${esc(RULE_INFO[r].n)}${weak ? ' <span class="pill">needs work</span>' : ""}</span><span class="num">${c}/${t} · ${pct}%</span>
+        <span class="bar"><i style="width:${pct}%;background:var(--c${ri})"></i></span>${note.length ? `<span class="sub">${note.join(" · ")}</span>` : ""}</div>`;
+    });
+  $("stats").innerHTML = rows.length ? rows.join("") : `<p class="empty">Answer a few questions and your accuracy for each rule shows up here, so you can see which ones need work.</p>`;
+}
+function render(){ renderVerse(); renderPanel(); renderControls(); renderScore(); }
+
+function buildSettings(){
+  $("families").innerHTML = FAMILIES.map(([f, label]) => {
+    const rules = RULES.filter(r => RULE_INFO[r].fam === f);
+    return `<div class="fam"><div class="fhead"><span>${label}</span><button data-fam="${f}">Toggle all</button></div><div class="chips">` +
+      rules.map(r => { const ri = RULES.indexOf(r); return `<label class="chip"><input type="checkbox" id="rule-${r}" data-rule="${r}" ${store.settings.off.includes(r) ? "" : "checked"}><span class="sw" style="background:var(--c${ri})"></span>${esc(RULE_INFO[r].n)}</label>`; }).join("") +
+      `</div></div>`;
+  }).join("");
+  $("paceSel").value = store.settings.pace; $("freqSel").value = store.settings.freq; $("focusSel").value = store.settings.focus; syncFocusUI(); $("colourAll").checked = store.settings.colourAll;
+  $("glist").innerHTML = RULES.map(r => ruleBox(r)).join("");
+  document.documentElement.style.setProperty("--ar-size", store.settings.size + "rem");
+}
+function applyRuleChange(){
+  // Re-plan questions for words not yet reached; keep answered ones.
+  const en = enabled(), freq = parseFloat(store.settings.freq);
+  S.anns.forEach(a => {
+    a.on = en.has(a.r);
+    if (a.status === "hidden" && a.word > S.cursor) a.ask = a.on && Math.random() < askProb(a.r);
+    if (a.status === "hidden" && a.word <= S.cursor && !a.ask && (a.on || store.settings.colourAll)) a.status = "shown";
+    if (a.status === "shown" && !a.on && !store.settings.colourAll) a.status = "hidden";
+  });
+  if (S.phase === "reading" || S.phase === "done") askNext(); else render();
+}
+
+function syncPickers(){
+  const s = surahOf(S.gi);
+  $("surahSel").value = String(s);
+  const n = D.surahs[s][4];
+  if ($("ayahSel").options.length !== n || $("ayahSel").dataset.s !== String(s)){
+    $("ayahSel").innerHTML = Array.from({length:n}, (_, i) => `<option value="${i + 1}">${i + 1}</option>`).join("");
+    $("ayahSel").dataset.s = String(s);
+  }
+  $("ayahSel").value = String(S.gi - surahStart[s] + 1);
+}
+
+// ---------- events ----------
+function wire(){
+  $("next").onclick = next; $("jump").onclick = jump; $("back").onclick = back;
+  $("prevAyah").onclick = () => gotoVerse(S.gi - 1); $("nextAyah").onclick = () => gotoVerse(S.gi + 1);
+  $("restart").onclick = () => loadVerse(S.gi);
+  $("fontUp").onclick = () => { store.settings.size = Math.min(4, +(store.settings.size + .25).toFixed(2)); saveStore(); buildSize(); };
+  $("fontDown").onclick = () => { store.settings.size = Math.max(1.5, +(store.settings.size - .25).toFixed(2)); saveStore(); buildSize(); };
+  $("surahSel").onchange = e => gotoVerse(surahStart[+e.target.value]);
+  $("ayahSel").onchange = e => gotoVerse(surahStart[surahOf(S.gi)] + (+e.target.value) - 1);
+  $("paceSel").onchange = e => { store.settings.pace = e.target.value; saveStore(); render(); };
+  $("focusSel").onchange = e => { store.settings.focus = e.target.value; saveStore(); syncFocusUI(); applyRuleChange(); };
+  $("freqSel").onchange = e => { store.settings.freq = e.target.value; saveStore(); applyRuleChange(); };
+  $("colourAll").onchange = e => { store.settings.colourAll = e.target.checked; saveStore(); applyRuleChange(); };
+  $("families").addEventListener("change", e => {
+    const r = e.target.dataset.rule; if (!r) return;
+    const off = new Set(store.settings.off); e.target.checked ? off.delete(r) : off.add(r);
+    store.settings.off = [...off]; saveStore(); applyRuleChange();
+  });
+  $("families").addEventListener("click", e => {
+    const f = e.target.dataset.fam; if (!f) return;
+    const rules = RULES.filter(r => RULE_INFO[r].fam === f);
+    const off = new Set(store.settings.off); const allOn = rules.every(r => !off.has(r));
+    rules.forEach(r => allOn ? off.add(r) : off.delete(r));
+    store.settings.off = [...off]; saveStore();
+    rules.forEach(r => { $("rule-" + r).checked = !off.has(r); });
+    applyRuleChange();
+  });
+  $("qpanel").addEventListener("click", e => {
+    const o = e.target.closest("[data-opt]"); if (o && !o.disabled) return answer(o.dataset.opt);
+    if (e.target.closest("#contBtn")) return cont();
+    if (e.target.closest("#revealBtn")) return showAnswer();
+    if (e.target.closest("#nextVerseBtn")) return gotoVerse(S.gi + 1);
+  });
+  $("verse").addEventListener("click", e => {
+    const s = e.target.closest("[data-r]"); S.tapped = s ? +s.dataset.r : null; renderControls();
+  });
+  $("resetStats").onclick = wireReset;
+  document.addEventListener("keydown", e => {
+    if (e.target.matches("select, input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target.matches("button") && (e.key === " " || e.key === "Enter")) {
+      // Let a focused button handle its own activation except our main flow keys.
+      if (!["next","jump"].includes(e.target.id)) return;
+    }
+    if (e.key === " " || e.key === "ArrowLeft"){ e.preventDefault(); next(); }
+    else if (e.key === "Enter"){ e.preventDefault(); if (S.phase === "feedback") cont(); else if (S.phase === "done") gotoVerse(S.gi + 1); else next(); }
+    else if (e.key === "ArrowRight"){ e.preventDefault(); back(); }
+    else if (e.key === "j" || e.key === "J"){ jump(); }
+    else if (/^[1-4]$/.test(e.key) && S.phase === "question"){ const r = S.opts[+e.key - 1]; if (r) answer(r); }
+  });
+}
+function restoreReset(){ $("resetWrap").innerHTML = `<button class="linkbtn" id="resetStats">Reset</button>`; $("resetStats").onclick = wireReset; }
+function wireReset(){
+  $("resetWrap").innerHTML = `Clear all? <button class="linkbtn" id="rsYes">Yes</button> · <button class="linkbtn" id="rsNo">No</button>`;
+  $("rsYes").onclick = () => { store.stats = {}; store.recent = {}; saveStore(); restoreReset(); renderScore(); };
+  $("rsNo").onclick = restoreReset;
+}
+function syncFocusUI(){
+  const f = store.settings.focus === "weak";
+  $("freqRow").hidden = f;
+  $("focusNote").textContent = f ? "Rules you get right often come up less. Rules with fewer than 5 answers, or 70% or less recently, come up every time." : "";
+}
+function buildSize(){ document.documentElement.style.setProperty("--ar-size", store.settings.size + "rem"); }
+
+// ---------- boot ----------
+fetch("quran.json").then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).then(data => {
+  D = data; RULES = data.rules;
+  let acc = 0; surahStart = data.surahs.map(s => { const v = acc; acc += s[4]; return v; });
+  $("surahSel").innerHTML = data.surahs.map((s, i) => `<option value="${i}">${s[0]}. ${esc(s[2])} · ${s[1]}</option>`).join("");
+  $("surahSel").disabled = false; $("ayahSel").disabled = false;
+  buildSettings(); wire();
+  const start = Number.isInteger(store.pos) && store.pos >= 0 && store.pos < data.verses.length ? store.pos : 0;
+  loadVerse(start);
+}).catch(err => {
+  $("verse").innerHTML = `<div class="loading" dir="ltr">The Quran text didn't load (${esc(String(err.message || err))}). Reload the page to try again.</div>`;
+});
+</script>
+</body>
+</html>
